@@ -8,7 +8,7 @@
 - 串口（待开发）：上位机发运动目标，下位机返回运行状态。
 
 ## 仓库导入说明
-当前先发布项目文档。完整 STM32 工程仍需从准备好的本地 Git 工程推送到 GitHub；在实际推送前不要认为固件源码已上传。
+STM32 原始工程已导入 `firmware/`，尚未在本环境编译或实机验证。树莓派原有 Python 源码已归档到 `raspberry_pi/legacy/`，迁移审阅见 `raspberry_pi/README.md`，不代表新通信链路已实现。
 
 ## 文档
 - AGENTS.md：Codex 项目约束
@@ -16,6 +16,8 @@
 - docs/communication_design.md：串口通信草案
 - docs/rules_summary.md：赛题摘要
 - docs/roadmap.md：实施路线
+- docs/pi_network.md：树莓派固定有线地址与 SSH 验证记录
+- raspberry_pi/README.md：原始视觉/串口源码迁移、审阅与待验证项
 
 ## 下一步
 优先建立树莓派与 C 板双向心跳、速度目标、状态反馈和超时停车。
