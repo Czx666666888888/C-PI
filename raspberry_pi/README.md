@@ -35,3 +35,31 @@
 - `ast.parse` 逐文件解析 `legacy/*.py`：10/10 PASS；不 import、不打开串口或摄像头。
 - 源机 `sha256sum ~/opencv_test/*.py` 与本地清单：10/10 一致。
 - 未编译/烧录 C 板，未发送运动指令，未运行视觉或旧串口脚本。
+
+## 摄像头接入后的物料检测预览（2026-11-05）
+
+用户随后插入 USB 摄像头，新增 `preview_material.py`：通过 SSH 在树莓派调用原始
+`physical_detect.get_color_blocks_positions()`，编码带标记 JPEG 传回 PC 显示。
+不启动旧主循环，不打开串口；原检测阈值和原始文件保持不变。
+使用 640×480 MJPG，确保原参考点 `(290, 260)` 在图像内；它仍不是标定坐标。
+稳定设备路径为 `/dev/v4l/by-id/usb-Alcorlink_Corp._USB_2.0_Camera-video-index0`。
+
+PC 运行（需要 OpenCV、NumPy 和已经配置的 SSH 密钥）：
+
+```bash
+python3 raspberry_pi/preview_material.py
+```
+
+窗口聚焦后按 Q 或 Esc 停止。GTK 后端不一定提供窗口可见性属性，优先使用键盘退出。
+接收端仅保留最新帧；日志 `preview_skipped` 是 PC 主动略过的预览帧，不能等同于摄像头丢帧。
+持续 12 秒没有收到新图像会退出；每 5 秒输出采集/解码计数和速度。
+
+已运行的验证：
+
+- `python3 -m py_compile raspberry_pi/preview_material.py`：PASS。
+- `python3 raspberry_pi/preview_material.py --headless --frames 90 --snapshot /tmp/cpi_material_preflight.jpg`：90 帧采集、传输、解码完成，预览略过 0；Pi 约 17 FPS，读取失败 0；快照已查看。
+- 预检退出后 `fuser /dev/video0` 无占用，随后成功启动持续 GUI 预览。
+- PC `xwininfo -root -tree` 确认 960×720 检测窗口已创建；持续日志显示 Pi 约 18 FPS，读取失败 0，并返回 Green 像素位置。
+
+以上验证了实物摄像头采集、检测函数执行和 PC 显示链路。物料分类准确率、全部颜色识别效果
+尚待用户放置物料观察，不能由日志中的 Green 结果直接认定识别正确。没有串口或运动测试。
