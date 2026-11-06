@@ -19,5 +19,6 @@ STM32 原始工程已导入 `firmware/`，尚未在本环境编译或实机验�
 - docs/pi_network.md：树莓派固定有线地址与 SSH 验证记录
 - raspberry_pi/README.md：原始视觉/串口源码迁移、审阅与待验证项
 
-## 下一步
-优先建立树莓派与 C 板双向心跳、速度目标、状态反馈和超时停车。
+## 树莓派 V1
+视觉与 UART 联合服务见 [运行及部署](raspberry_pi/README.md#v1-联合服务) 和 [V1 协议](docs/uart_v1.md)。
+本阶段仅发送视觉观测，不修改固件、不控制运动。实物 C 板联调与固件超时停车 UNVERIFIED。

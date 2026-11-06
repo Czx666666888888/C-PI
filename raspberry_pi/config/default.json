@@ -1,0 +1,9 @@
+{
+  "camera": "/dev/v4l/by-id/usb-Alcorlink_Corp._USB_2.0_Camera-video-index0",
+  "serial_device": "/dev/serial0",
+  "baud": 115200,
+  "target_color": null,
+  "retry_seconds": 2.0,
+  "max_age_ms": 500,
+  "log_seconds": 5.0
+}

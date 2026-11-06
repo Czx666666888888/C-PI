@@ -85,3 +85,52 @@ python3 raspberry_pi/preview_material.py
 2. 优化物料识别：背景误检、HSV 阈值、轮廓筛选和结果稳定性；统一比赛六色编号。参考点与像素坐标先明确，不将其冒充已标定物理坐标。
 3. 编写上位机通信部分：先定稿 HELLO、HEARTBEAT、SET_VELOCITY、STATUS 的长度、序号、单位、坐标系、CRC 与超时契约，再实现解析和离线验证。
 4. 串口实连前处理 `ttyS0` 控制台占用、核对 USART3 实物接口；自主接入前落实单点控制权仲裁。帧检验及超时停车验证不可省略，实机未测继续标记 **UNVERIFIED**。
+
+## V1 联合服务
+
+新入口 `main.py`，独立部署到 `/home/pi/cpi-vision`；仅 Python 解释器复用
+`/home/pi/opencv_test/.venv/bin/python`，检测源码来自新目录 `legacy/physical_detect.py`。
+旧工程不删除、不改动。依赖 `opencv-python numpy pyserial`，无 ROS2 或 GUI 依赖。
+协议见 [UART V1](../docs/uart_v1.md)。默认无窗口；可选 `--preview` 仅用于本机桌面。
+
+PC 同步（不复制 venv/缓存，不使用 rsync --delete）：
+
+```bash
+bash raspberry_pi/scripts/deploy.sh
+```
+
+树莓派手动测试：
+
+```bash
+cd /home/pi/cpi-vision
+/home/pi/opencv_test/.venv/bin/python main.py --mode simulate --serial-device /dev/pts/3 --duration 10
+/home/pi/opencv_test/.venv/bin/python main.py --mode vision --duration 30
+/home/pi/opencv_test/.venv/bin/python main.py --mode combined --target-color Red
+/home/pi/opencv_test/.venv/bin/python scripts/mock_uart_test.py
+```
+
+`simulate` 不打开相机；`vision` 不打开串口；`combined` 两者同时运行。
+配置集中于 `config/default.json`，支持 `--config`、`--camera`、`--serial-device`、
+`--target-color` 覆盖。终端与 journal 每 5 秒输出视觉结果、目标、发送计数和串口状态，
+收到 ACK/STATUS 当次记录。不要同时启动手动程序和服务争抢相机。
+SIGINT/SIGTERM 正常释放资源；底层相机若阻塞，systemd 会在 8 秒内终止整个进程组。
+
+先手动验证，再安装服务：
+
+```bash
+bash /home/pi/cpi-vision/scripts/install_service.sh
+sudo systemctl start cpi-vision
+sudo systemctl stop cpi-vision
+sudo systemctl restart cpi-vision
+systemctl status cpi-vision --no-pager
+journalctl -u cpi-vision -f
+sudo systemctl disable --now cpi-vision
+```
+
+未来连接 C 板手动测试前先 `sudo systemctl stop cpi-vision`，再运行：
+
+```bash
+/home/pi/opencv_test/.venv/bin/python /home/pi/cpi-vision/main.py --mode combined --serial-device /dev/serial0 --target-color Red
+```
+
+这仅发送视觉观测，不控制运动；必须在固件实现匹配协议后联调。

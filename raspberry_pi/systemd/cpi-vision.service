@@ -1,0 +1,21 @@
+[Unit]
+Description=C-PI vision and UART V1
+After=local-fs.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=pi
+SupplementaryGroups=video dialout
+WorkingDirectory=/home/pi/cpi-vision
+ExecStart=/home/pi/opencv_test/.venv/bin/python -u /home/pi/cpi-vision/main.py --mode combined
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=8
+KillMode=control-group
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
