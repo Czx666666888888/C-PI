@@ -134,3 +134,6 @@ sudo systemctl disable --now cpi-vision
 ```
 
 这仅发送视觉观测，不控制运动；必须在固件实现匹配协议后联调。
+
+本次部署、重启、异常自动恢复和全部 PASS/UNVERIFIED 清单见
+[部署验收记录](../docs/pi_uart_v1_validation.md)。实物三色测试用户尚未进行。
