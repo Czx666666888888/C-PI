@@ -40,3 +40,5 @@ Windows 免密 SSH 与摄像头预览入口见 [使用说明](docs/windows_previ
 STM32 手/自动模式、V1 收发与红色夹爪触发见 [开发验收](docs/stm32_uart_v1_validation.md)。
 
 当前树莓派与C板默认通信改为USB CDC（USB-A→MicroUSB数据线），V1帧不变；旧USART3仅保留历史实现，见[USB CDC说明和接续步骤](docs/usb_cdc.md)。今日树莓派和Windows均未识别到C板USB；用户确认现用线是供电线，计划更换支持数据传输的线后继续。线缆是当前首要排查项，尚未通过换线复测确认根因；双向收发及颜色动作均UNVERIFIED。
+
+独立的[圆台上表面中心实验V1](docs/frustum_top_center_v1.md)已进行真实相机五位置及光照对照；实验工具不替换生产算法。当前上表面定位稳定性未达标，最终候选不足时明确INVALID，绝对定位精度UNVERIFIED。
