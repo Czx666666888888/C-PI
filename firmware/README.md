@@ -13,7 +13,7 @@ Flash 0x08000000、1 MiB；RAM 0x20000000/112 KiB + 0x2001C000/16 KiB。useFile=
 
 Debug/Utilities 使用 ST-LINKIII-KEIL_SWO.dll；uvoptx 记录 ARM CoreSight SW-DP；下载算法 STM32F4xx_1024.FLM，Flash 起点 0x08000000、大小 0x100000。本机 FLM、ST-Link DLL 与驱动安装包存在。
 实物驱动绑定、GUI 交互、SWD 接线、Reset 策略及下载均 UNVERIFIED。连接后从 Options for Target → Debug → ST-Link Settings 核对 SWD、复位与 Flash Download。本次未烧录，会驱动电机的下载须用户另行确认。
-USART3 后续修改位置和资源审阅见 ../docs/windows_migration.md，目前只有初始化，没有 Pi V1 解析。
+USART3资源审阅基线见 ../docs/windows_migration.md；当前已新增Pi V1解析和反馈，实现及实测边界见 ../docs/stm32_uart_v1_validation.md。
 
 ## STM32 UART V1增量
 
@@ -21,3 +21,5 @@ USART3 后续修改位置和资源审阅见 ../docs/windows_migration.md，目�
 UART_RX_Task每10ms更新g_control_mode；TOWER_Task唯一负责夹爪手/自动命令。自动红色有效目标仅发一次-80度，其他颜色/失效不触发；不进行底盘自动移动。见docs/uart_v1.md。
 调试器观察g_control_mode、g_pi_online、g_pi_target（color/valid/dx/dy/age_ms/seq/last_rx_tick）、g_auto_red_grab_done与g_pi_*_errors；CRSF可观察原crsf.c中的s_last_frame_tick/s_frame_count。原OLED显示保持。
 原SG90_SetAngle实际公式为1500+angle*1000/90，-80对应612个计数；与驱动注释所说的1000–2000范围不一致。本次按要求复用、不修改TIM1或驱动，机械行程和真实闭合需用户确认烧录后验证，不将命令下发描述为抓取成功。
+
+上文Code/RAM数值为迁移基线；当前V1固件最终构建与输出SHA256以docs/stm32_uart_v1_validation.md为准。
