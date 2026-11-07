@@ -9,7 +9,6 @@ import struct
 import subprocess
 import threading
 import time
-from pathlib import Path
 
 import cv2
 import numpy as np
@@ -30,6 +29,9 @@ try:
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     cap.set(cv2.CAP_PROP_FPS, 30)
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))
+    print('PI camera format=' + ''.join(chr((fourcc >> (8*i)) & 255) for i in range(4)),
+          file=sys.stderr, flush=True)
     count = failures = 0
     start = report = time.monotonic()
     while True:
@@ -67,13 +69,20 @@ finally:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--host', default='pi@192.168.123.50')
-    parser.add_argument('--key', default=str(Path.home() / '.ssh/id_ed25519_go2'))
+    parser.add_argument('--key', help='Optional private key; otherwise use OpenSSH config/agent')
     parser.add_argument('--headless', action='store_true')
     parser.add_argument('--frames', type=int, default=0, help='0: until closed')
+    parser.add_argument('--duration', type=float, default=0,
+                        help='Seconds from first displayed frame; 0: until closed')
     parser.add_argument('--snapshot', help='Save the last displayed frame')
     args = parser.parse_args()
+    if args.frames < 0 or args.duration < 0:
+        parser.error('frames and duration must be nonnegative')
+    ssh = ['ssh', '-T']
+    if args.key:
+        ssh += ['-i', args.key]
     process = subprocess.Popen(
-        ['ssh', '-T', '-i', args.key, '-o', 'BatchMode=yes',
+        ssh + ['-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes',
          '-o', 'ConnectTimeout=8', '-o', 'ServerAliveInterval=3',
          '-o', 'ServerAliveCountMax=2', args.host,
          '/home/pi/opencv_test/.venv/bin/python -u -'],
@@ -82,7 +91,7 @@ def main():
     frames = queue.Queue(maxsize=1)
     errors = queue.Queue()
     stop = threading.Event()
-    counters = {'decoded': 0, 'skipped': 0}
+    counters = {'decoded': 0, 'skipped': 0, 'decode_failures': 0}
 
     def read_exact(length):
         result = bytearray()
@@ -101,6 +110,7 @@ def main():
                     raise ValueError(f'Invalid JPEG length: {length}')
                 frame = cv2.imdecode(np.frombuffer(read_exact(length), np.uint8), cv2.IMREAD_COLOR)
                 if frame is None:
+                    counters['decode_failures'] += 1
                     raise ValueError('JPEG decode failed')
                 counters['decoded'] += 1
                 if frames.full():
@@ -117,6 +127,7 @@ def main():
     shown = 0
     last = None
     start = last_frame = report = time.monotonic()
+    first_frame = None
     title = 'C-PI - Raspberry Pi material detection (Q to close)'
     try:
         process.stdin.write(WORKER.encode())
@@ -132,6 +143,8 @@ def main():
                 last = frames.get(timeout=0.05)
                 shown += 1
                 last_frame = time.monotonic()
+                if first_frame is None:
+                    first_frame = last_frame
                 if not args.headless:
                     cv2.imshow(title, last)
             except queue.Empty:
@@ -146,6 +159,8 @@ def main():
                     break
             if args.frames and shown >= args.frames:
                 break
+            if args.duration and first_frame is not None and now - first_frame >= args.duration:
+                break
             if now - report >= 5:
                 print(f'PC displayed={shown} decoded={counters["decoded"]} '
                       f'preview_skipped={counters["skipped"]} fps={shown / (now-start):.1f}', flush=True)
@@ -158,14 +173,21 @@ def main():
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
+        if thread.is_alive():
+            thread.join(timeout=5)
         process.stdout.close()
         if not args.headless:
             cv2.destroyAllWindows()
         if args.snapshot and last is not None:
             if not cv2.imwrite(args.snapshot, last):
                 raise RuntimeError('Could not save snapshot')
+        elapsed = time.monotonic() - start
+        stream_seconds = last_frame - first_frame if first_frame is not None else 0
+        fps = (shown - 1) / stream_seconds if stream_seconds > 0 else 0
         print(f'STOP displayed={shown} decoded={counters["decoded"]} '
-              f'preview_skipped={counters["skipped"]} elapsed={time.monotonic()-start:.1f}s', flush=True)
+              f'preview_skipped={counters["skipped"]} decode_failures={counters["decode_failures"]} '
+              f'elapsed={elapsed:.1f}s stream_seconds={stream_seconds:.2f} fps={fps:.2f} '
+              f'ssh_reaped={process.poll() is not None} receiver_alive={thread.is_alive()}', flush=True)
 
 
 if __name__ == '__main__':
