@@ -17,6 +17,7 @@ int HAL_UART_Transmit(UART_HandleTypeDef*h,uint8_t*p,uint16_t n,uint32_t t){
     (void)h;(void)t;if(tx_fail)return 1;
     if(output_len+n<=sizeof(output)){memcpy(output+output_len,p,n);output_len+=n;}return 0;
 }
+int USB_CPI_Send(const uint8_t*p,uint16_t n){return HAL_UART_Transmit(&huart3,(uint8_t*)p,n,10);}
 #include "pi_link.c"
 static jmp_buf escape;
 static int step,script,linked,failed,grip_calls,zeros,angle,forward_calls;

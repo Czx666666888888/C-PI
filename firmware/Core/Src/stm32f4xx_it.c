@@ -22,6 +22,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+extern PCD_HandleTypeDef hpcd;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -293,6 +294,11 @@ void USART6_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+void OTG_FS_IRQHandler(void)
+{
+  HAL_PCD_IRQHandler(&hpcd);
+}
+
 void USART3_IRQHandler(void)
 {
   HAL_UART_IRQHandler(&huart3);

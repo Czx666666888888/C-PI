@@ -40,6 +40,7 @@
 #include "ist8310driver.h"
 #include "BMI088driver.h"
 #include "SG90.h"
+#include "usb_cpi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -137,6 +138,7 @@ int main(void)
   MX_CAN1_Init();
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
+  USB_CPI_Init(); /* 先枚举，仍保留原KEY门控；未启动任务前不会执行颜色动作。 */
   /* ═══════════════════════════════════════════════════════════════════
    * 按键启动门控（对齐 6.key_exit）
    * 上电后在此等待 PA0 按下 → PB14 拉高 → 延时 300ms → 启动全部流程
@@ -222,7 +224,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 6;
   RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 7; /* 336MHz/7=48MHz USB，CPU仍为168MHz。 */
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();

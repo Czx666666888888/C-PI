@@ -23,3 +23,7 @@ UART_RX_Task每10ms更新g_control_mode；TOWER_Task唯一负责夹爪手/自动
 原SG90_SetAngle实际公式为1500+angle*1000/90，-80对应612个计数；与驱动注释所说的1000–2000范围不一致。本次按要求复用、不修改TIM1或驱动，机械行程和真实闭合需用户确认烧录后验证，不将命令下发描述为抓取成功。
 
 上文Code/RAM数值为迁移基线；当前V1固件最终构建与输出SHA256以docs/stm32_uart_v1_validation.md为准。
+
+## 当前传输：USB CDC
+
+USB-A（树莓派）到MicroUSB（C板），V1帧格式不变，MAIN_Task默认不再启动USART3 RX。USB固件真实编译0 Errors/14 Warnings，原三色动作及CRSF不变，硬件尚未验证。接线、时钟/引脚适配和测试边界见../docs/usb_cdc.md与USB_DEVICE/README.md。

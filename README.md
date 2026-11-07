@@ -38,3 +38,5 @@ python -m unittest discover -s PI/tests -v
 Windows 免密 SSH 与摄像头预览入口见 [使用说明](docs/windows_preview.md) 和 [本次实测](docs/windows_preview_validation.md)。
 
 STM32 手/自动模式、V1 收发与红色夹爪触发见 [开发验收](docs/stm32_uart_v1_validation.md)。
+
+当前树莓派与C板默认通信改为USB CDC（USB-A→MicroUSB数据线），V1帧不变；旧USART3仅保留历史实现，接线和烧录后验证见[USB CDC说明](docs/usb_cdc.md)。实际USB枚举/双向收发尚待烧录验证。

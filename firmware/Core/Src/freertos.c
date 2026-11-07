@@ -662,7 +662,7 @@ void StartTask05(void const * argument)
   /* 复用空闲任务：DMA字节缓冲在这里解析，ACK/STATUS只在任务中发送。 */
   for (;;)
   {
-    PI_UART_ServiceReceive();
+    /* USB CDC中断已缓冲字节；不启动USART3接收，避免两个输入源混帧。 */
     pi_link_process();
     osDelay(10);
   }

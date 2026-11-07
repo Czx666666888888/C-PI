@@ -1,5 +1,5 @@
 #include "pi_link.h"
-#include "usart.h"
+#include "usb_cpi.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include <string.h>
@@ -119,7 +119,7 @@ static void send_frame(uint8_t type, const uint8_t *payload, uint8_t length)
     data[6] = length;
     memcpy(&data[7], payload, length);
     put16(&data[7U + length], crc16(data, (uint8_t)(7U + length)));
-    if (HAL_UART_Transmit(&huart3, data, (uint16_t)(9U + length), 10U) != HAL_OK) {
+    if (USB_CPI_Send(data, (uint16_t)(9U + length)) != 0) {
         ++g_pi_tx_errors;
     }
 }

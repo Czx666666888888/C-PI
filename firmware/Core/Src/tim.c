@@ -303,12 +303,12 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOE_CLK_ENABLE();
     /**TIM1 GPIO Configuration
-    PA11     ------> TIM1_CH4
+    PA11已释放给USB_OTG_FS_DM，TIM1_CH4未使用
     PA10     ------> TIM1_CH3
     PA9     ------> TIM1_CH2
     PE9      ------> TIM1_CH1
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_10|GPIO_PIN_9;
+    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_9;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

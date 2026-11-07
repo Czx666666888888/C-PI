@@ -28,3 +28,8 @@ DJI C 板 STM32F407 是实时运动控制下位机；树莓派是负责视觉识
 - V1 以 docs/uart_v1.md 和 PI/communication/protocol.py 为准，本阶段不实现旧草案 HELLO/SET_VELOCITY。
 - 夹爪参考点 (290,260)，dx=cx-290、dy=260-cy；get_color_blocks_positions 已返回偏差，禁止再次计算。不擅改视觉算法。当前授权自动颜色动作仅限：红色夹爪闭合、绿色张开、蓝色固定0.25m/s前进最多1秒；目标失效/变色停车，手动优先，不用dx/dy导航。
 - USART1 保留 CRSF；USART3 回调不能破坏 USART1；StartTask04 已写底盘目标，后续须统一仲裁和失联停车。
+
+## 当前物理通信
+- 用户已选择树莓派USB-A主机口连接C板MicroUSB，默认USB CDC承载原V1。不要按旧USART3表把Pi接标准C板DBUS（其RX经过反相）。
+- MAIN_Task不同时启动USART3 RX和USB输入，避免混帧。USB占PA11/PA12，48MHz来自PLLQ7，CPU/APB与SG90 PWM参数不变。
+- USB实际枚举/双向收发未验证前标UNVERIFIED；烧录需用户确认。原相机服务配置仍是serial0，只有确认CDC稳定设备路径后再协调服务配置，不能盲写ttyACM0并声称连通。
