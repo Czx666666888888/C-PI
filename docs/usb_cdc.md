@@ -47,3 +47,12 @@ PI/config/usb.json提供暂用/dev/ttyACM0的配置模板；未枚举前不要�
 当前HEX SHA256：c0bd35ccb75cae87b6b80a672a8dc357a8d3d982477834b9ca89f0bf0c06df55。
 
 独立干净checkout 82fbdb9也已真实Keil重建PASS（0 Errors/14 Warnings），HEX与当前工作目录构建逐字节一致，验证不依赖原本地未提交Keil配置。
+
+## 用户烧录后的首轮检查（2026-11-07）
+
+用户报告已烧录并已换MicroUSB数据线/树莓派USB口、按RST，未按KEY。尚未通过SWD读取Flash核对，不把用户报告等同于已验证运行映像。
+- USB枚举检查FAIL：树莓派lsusb仅有根Hub和Alcorlink相机，无0483:5740；/dev/ttyACM*和/dev/serial/by-id均不存在。内核日志也未见C板新连接事件。原因未定，下一步检查探针/启动状态，不据此认定驱动或固件已正常。
+- USB双向协议、ACK/STATUS、颜色执行器联动均UNVERIFIED：没有设备节点，未发送任何USB测试帧或机构指令。
+- 经用户允许暂停原cpi-vision后，Windows只读颜色预览PASS：640×480 MJPG，90.00s有效流，显示1344帧/解码1353帧，14.92FPS，主动preview_skipped=9，decode_failures=0，日志read_failures=0；曾观察Red=(-28,54)。不以此声称全颜色识别/中心精度验收。
+- 预览正常结束，ssh_reaped=True、receiver_alive=False；确认无预览摄像头占用后恢复原服务active/running，PID2299。原服务仍使用serial0，未改为USB设备，也未另开第二相机采集。
+- 本轮没有改固件或重新烧录。Windows当前未识别到ST-Link，已请用户接回SWD探针，准备检查程序启动/USB初始化位置。
