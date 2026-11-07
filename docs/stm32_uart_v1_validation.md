@@ -25,12 +25,12 @@ Fetch全部分支后确认feature/stm32-uart-v1=e122438为feature/windows-worksp
 | Keil引用静态检查 | PASS | 63个源文件，include/source全部存在；新增pi_link.c加入工程 |
 | 实际C代码主机测试 | PASS | 6项，含V1 CRC/ACK/STATUS、int16边界、分片/粘包/坏帧恢复、valid/color语义、age/心跳/32位tick回绕、半帧/溢出/UART错误/TX失败、实际UART_RX_Task/TOWER_Task分支 |
 | Pi原有测试 | PASS | 6项协议/合成视觉测试，无UART硬件操作 |
-| 干净提交工程重建 | PENDING | 提交后使用独立checkout复核，排除本地未提交配置差异 |
+| 干净提交工程重建 | PASS | 对a4828ce独立checkout使用原始PackID配置真实Keil构建，0 Errors/14 Warnings；与当前本地配置编译的HEX逐字节一致 |
 
 主机测试编译原pi_link.c，并从当前freertos.c提取原任务体，模拟HAL、CAN、PWM、CRSF链路和osDelay。验证的是软件逻辑，不验证真实ISR时序、接线、电机、PWM或RTOS栈余量；GCC仅用于测试，生产构建仍为Keil ARMCC。
 命令：python -m unittest discover -s tests/firmware -v；python -m unittest discover -s PI/tests -v；python tools/check_firmware.py；./tools/build_firmware.ps1。
 保留已有CRLF文件换行，diff检查使用git -c core.whitespace=trailing-space,space-before-tab,cr-at-eol diff --check。
-当前本地构建Code=37548、RO-data=1368、RW-data=700、ZI-data=24316字节（最终确认构建以末尾记录为准）。
+当前本地构建Code=37568、RO-data=1368、RW-data=700、ZI-data=24316字节（最终确认构建以末尾记录为准）。
 
 ## 实机验收（尚未烧录）
 
@@ -53,3 +53,12 @@ Fetch全部分支后确认feature/stm32-uart-v1=e122438为feature/windows-worksp
 6. Pi原服务当前可能持续发视觉TARGET；新固件启动后失去CRSF且看见红色（含背景红灯误识别）就可能闭合，首次烧录联调前需按用户批准的步骤协调Pi服务/场景。不得在后台直接发送实物夹爪触发测试帧。
 
 本次不让dx/dy驱动底盘、不自动升降、不改PID/电机映射/视觉算法、不删除本地原件或已有修改。
+
+## 最终构建证据
+
+当前工作目录与.local/stm32-clean-verify干净checkout均真实rebuild成功（11/12秒）。均使用ARMCC5.06u7 build960，0 Errors、14条原有Warnings。
+最终Code=37568、RO-data=1368、RW-data=700、ZI-data=24316字节；Flash负载约39636字节，RAM25016字节。
+根目录输出firmware/MDK-ARM/DJI C board/DJI C board.hex=110023字节、AXF=1316828字节（含调试信息，非Flash占用）。
+HEX SHA256：6e1cad8acce8a6a29b1185745a40b1a3800d8b8d442bdfed3afe7f4bdd67d880。两个构建HEX一致，验证未依赖原有未提交配置差异。日志与临时构建目录均忽略，不提交产物。
+编译后核对uvoptx、scatter和RTE文件与任务前备份逐字节一致；本地uvprojx在保留原配置基础上仅增加本次源文件引用。
+源码与配置引用检查通过，HAL UART回调每种仅一个定义，USART3 IRQ一个实现。未连接/控制实物执行器，未发送烧录命令；下一步须用户确认后分阶段实测。

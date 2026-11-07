@@ -77,4 +77,3 @@ uint16_t test_crc(const uint8_t*p,uint8_t n){return crc16(p,n);}
 void test_tx_fail(void){tx_fail=1;}
 int test_modes(void){step=failed=zeros=0;script=1;linked=1;g_control_mode=CONTROL_MODE_AUTO;if(!setjmp(escape))StartTask04(0);return failed;}
 int test_grip(void){step=failed=grip_calls=0;script=2;linked=0;g_control_mode=CONTROL_MODE_AUTO;target(1,1);if(!setjmp(escape))StartTask06(0);return failed;}
-
