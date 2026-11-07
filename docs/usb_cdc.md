@@ -42,7 +42,7 @@ PI/config/usb.json提供暂用/dev/ttyACM0的配置模板；未枚举前不要�
 
 2026-11-07：真实Keil ARMCC5.06u7 rebuild PASS，0 Errors、14条原有Warnings；73个源文件引用完整。Code47592、RO-data1368、RW-data956、ZI-data27228字节；HEX138725字节。
 10项固件主机测试PASS（原协议/模式/颜色动作7项、USB适配3项：异步TX缓冲生命周期与超时/断开、CDC RX及line-coding、静态分配）；Pi原6项测试PASS。
-这些测试不模拟真实USB电气/主机枚举/PCD中断。实际Linux ttyACM识别、双向ACK/STATUS、插拔、相机联动和机构动作全部UNVERIFIED。尚未烧录，烧录仍须用户确认。
+这些测试不模拟真实USB电气/主机枚举/PCD中断。构建阶段尚未烧录；后续用户已执行烧录，实测进度见下文。双向ACK/STATUS、插拔恢复、相机联动和机构动作仍UNVERIFIED；任何再次烧录仍须用户确认。
 
 当前HEX SHA256：c0bd35ccb75cae87b6b80a672a8dc357a8d3d982477834b9ca89f0bf0c06df55。
 
@@ -56,3 +56,24 @@ PI/config/usb.json提供暂用/dev/ttyACM0的配置模板；未枚举前不要�
 - 经用户允许暂停原cpi-vision后，Windows只读颜色预览PASS：640×480 MJPG，90.00s有效流，显示1344帧/解码1353帧，14.92FPS，主动preview_skipped=9，decode_failures=0，日志read_failures=0；曾观察Red=(-28,54)。不以此声称全颜色识别/中心精度验收。
 - 预览正常结束，ssh_reaped=True、receiver_alive=False；确认无预览摄像头占用后恢复原服务active/running，PID2299。原服务仍使用serial0，未改为USB设备，也未另开第二相机采集。
 - 本轮没有改固件或重新烧录。Windows当前未识别到ST-Link，已请用户接回SWD探针，准备检查程序启动/USB初始化位置。
+
+## 当日收尾与下次接续（2026-11-07）
+
+用户随后接回ST-Link，允许仅诊断、不重新烧录；又将C板MicroUSB接Windows并按RST，未按KEY。
+
+- 烧录记录：Keil现有输出显示Programming Done、Verify OK，Flash Load finished at 20:47:30。该记录与SWD读数不等同于已回读整片Flash并校验映像哈希。
+- SWD连接PASS：探针及SW-DP可识别。首次连接PC为0x0800AD04，对应当前map中的FreeRTOS空闲清理函数；用户再次RST后PC为0x08002162，对应HAL_GPIO_ReadPin，符合原KEY等待流程。通过F5恢复运行并退出调试，无重新下载、复位命令或执行器测试帧。
+- 只读寄存器记录：GPIOA MODER=0xAAAA8100，AFR[1]=0x000AA174（PA11/12 AF10）；RCC PLLCFGR=0x07402A06（M6/N168/Q7）；USB GUSBCFG=0x40001440、GOTGCTL=0x000D0000、DSTS=0x00000006。首次诊断还读取dev_state=1、DCTL=0、GCCFG=0x0021FFFF、核心标识0x4F54281A。仅说明读到这些软件/控制器状态，不据此宣称USB电气链路或48MHz实测通过。
+- Windows枚举FAIL：Get-PnpDevice -PresentOnly未发现C板0483:5740、CDC串口或未知USB设备；ST-Link 0483:3748是独立探针，不是C板CDC。Pi此前也未枚举，因此不能归因于Pi单端或V1帧格式。
+- 用户确认目前使用的是供电线，计划次日购买支持数据传输的USB-A→MicroUSB线。此为首要排查项；尚未以已验证的数据线复测，不能提前断言唯一根因或C板损坏。
+- 收尾复查：SSH仍可免密登录；systemctl is-active/is-enabled cpi-vision返回active/enabled。预览已经结束，原服务继续使用serial0，未部署USB配置；未发送USB机构指令。
+- 本地Keil为只诊断连接临时关闭Load Application at Startup、Update Target before Debugging和Reset after Connect，连接方式改Normal。保留本地设置，不将这些调试选项或原有Pack/工程本地修改提交。下次如需下载应明确检查设置并先征得用户确认。
+
+下次按顺序继续，不先重烧录：
+
+1. 用确认支持数据传输的线连接C板MicroUSB与Windows，保持正常外置供电，按RST、暂不按KEY；检查CDC或未知USB设备。
+2. Windows识别后接回Pi，核对lsusb及实际/dev/serial/by-id稳定路径，再安排V1双向HEARTBEAT/TARGET_ACK/STATUS验证。
+3. 配置远端USB前备份现有配置；相机被原服务占用时先按用户要求确认临时停止，测试结束恢复。只启动一个相机采集进程，打开颜色测试画面。
+4. 分阶段实测手动优先、红色闭合、绿色张开、蓝色最多前进1秒以及失效停车；需要按KEY启动和机构运动时逐项指导。所有实板动作目前UNVERIFIED，不把闭合命令等同于抓取成功率验收。
+
+本次收尾仅更新README.md与本文档。验证命令：git diff --check（沿用CRLF配置）、Git差异审阅、Windows Get-PnpDevice设备检查、SSH及systemctl状态检查。未改生产代码，未重复编译或运行已有软件测试；遗留问题为数据线更换后的真实USB枚举及后续联动验收。
