@@ -60,6 +60,7 @@ class FirmwareTests(unittest.TestCase):
         self.send();self.feed(bytes(300),False);self.c.pi_link_process();self.assertEqual(self.target().valid,0)
         f=protocol.encode(2,1,struct.pack('<BBhhH',1,1,30,-15,0));self.feed(f[:8]);self.c.test_tick(101);self.feed(f)
         self.assertEqual(self.target().valid,1);self.c.test_tx_fail();self.send();self.assertGreater(C.c_uint32.in_dll(self.c,'g_pi_tx_errors').value,0)
+    def test_actual_blue_timing_and_takeover(self):self.assertEqual(self.c.test_blue(),0)
     def test_actual_mode_task(self):self.assertEqual(self.c.test_modes(),0)
     def test_actual_tower_task(self):self.assertEqual(self.c.test_grip(),0)
 if __name__=='__main__':unittest.main()

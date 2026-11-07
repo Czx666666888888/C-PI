@@ -26,5 +26,5 @@ DJI C 板 STM32F407 是实时运动控制下位机；树莓派是负责视觉识
 - 不提交 .o/.axf/.hex、日志、缓存或密钥。本地输出保留；烧录会驱动电机的固件须另获用户确认。
 - tools/deploy_pi.ps1 和 pull_pi.ps1 默认预检查，-Apply 才写入；哈希冲突人工合并，不覆盖独立修改，不自动重启服务。
 - V1 以 docs/uart_v1.md 和 PI/communication/protocol.py 为准，本阶段不实现旧草案 HELLO/SET_VELOCITY。
-- 夹爪参考点 (290,260)，dx=cx-290、dy=260-cy；get_color_blocks_positions 已返回偏差，禁止再次计算。不擅改视觉算法，不令固件根据视觉运动。
+- 夹爪参考点 (290,260)，dx=cx-290、dy=260-cy；get_color_blocks_positions 已返回偏差，禁止再次计算。不擅改视觉算法。当前授权自动颜色动作仅限：红色夹爪闭合、绿色张开、蓝色固定0.25m/s前进最多1秒；目标失效/变色停车，手动优先，不用dx/dy导航。
 - USART1 保留 CRSF；USART3 回调不能破坏 USART1；StartTask04 已写底盘目标，后续须统一仲裁和失联停车。

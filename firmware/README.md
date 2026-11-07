@@ -18,7 +18,7 @@ USART3资源审阅基线见 ../docs/windows_migration.md；当前已新增Pi V1�
 ## STM32 UART V1增量
 
 新增Core/Src/pi_link.c、Core/Inc/pi_link.h，工程现为63个源文件。USART3 DMA启动与错误恢复由现有MAIN_Task执行，反馈发送仅在任务中；USART1 CRSF保持原实现。MAIN_Task调整Normal、256栈，其余线程配置不变。
-UART_RX_Task每10ms更新g_control_mode；TOWER_Task唯一负责夹爪手/自动命令。自动红色有效目标仅发一次-80度，其他颜色/失效不触发；不进行底盘自动移动。见docs/uart_v1.md。
+UART_RX_Task每10ms更新g_control_mode；TOWER_Task唯一负责夹爪手/自动命令。自动红色有效目标闭合-80度、绿色张开0度、蓝色触发0.25m/s前进最多1秒，同色不重复触发；目标失效/变色停车，手动优先。见docs/uart_v1.md。
 调试器观察g_control_mode、g_pi_online、g_pi_target（color/valid/dx/dy/age_ms/seq/last_rx_tick）、g_auto_red_grab_done与g_pi_*_errors；CRSF可观察原crsf.c中的s_last_frame_tick/s_frame_count。原OLED显示保持。
 原SG90_SetAngle实际公式为1500+angle*1000/90，-80对应612个计数；与驱动注释所说的1000–2000范围不一致。本次按要求复用、不修改TIM1或驱动，机械行程和真实闭合需用户确认烧录后验证，不将命令下发描述为抓取成功。
 

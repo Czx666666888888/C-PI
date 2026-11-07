@@ -19,13 +19,14 @@ int HAL_UART_Transmit(UART_HandleTypeDef*h,uint8_t*p,uint16_t n,uint32_t t){
 }
 #include "pi_link.c"
 static jmp_buf escape;
-static int step,script,linked,failed,grip_calls,zeros,angle;
+static int step,script,linked,failed,grip_calls,zeros,angle,forward_calls;
+static float last_vx;
 #define CRSF_CH_CENTER 992
 #define hcan1 huart3
 #define S_VEL 0
 #define crsf_is_linked(timeout) (linked)
 static uint16_t crsf_get_channel(int ch){return (script==2 && ch==6) ? 1700 : 992;}
-static void chassis_set_target(float x,float y,float z){if(x==0&&y==0&&z==0)++zeros;}
+static void chassis_set_target(float x,float y,float z){last_vx=x;if(x==0&&y==0&&z==0)++zeros;else{++forward_calls;if(script==3&&(x!=0.25f||y!=0||z!=0))failed=1;}}
 static void X_V2_Stop_Now(int a,int b){(void)a;(void)b;}
 static void X_V2_En_Control(int a,int b,int c){(void)a;(void)b;(void)c;}
 static void X_V2_Modify_Ctrl_Mode(int a,int b,int c){(void)a;(void)b;(void)c;}
@@ -40,6 +41,7 @@ static void pid_reset(void*p){(void)p;}
 static float pid_calc(void*p,float a,float b){(void)p;return a-b;}
 static struct{int rotor_angle,rotor_speed;}motor_yaw_info;
 static uint8_t g_tower_mode_active;
+static uint8_t g_chassis_ready = 1U;
 static int16_t g_6020_voltage_cmd;
 static void target(int color,int valid){g_pi_target.color=color;g_pi_target.valid=valid;g_pi_target.age_ms=0;g_pi_target.last_rx_tick=tick;}
 static void osDelay(int ms){
@@ -50,8 +52,26 @@ static void osDelay(int ms){
         if(step==4&&g_control_mode!=CONTROL_MODE_MANUAL)failed=1;
         if(++step==5)longjmp(escape,1);
         linked=(step==4);
+    }else if(script==3){
+        static const int expected[]={0,1,2,2,2,2,3,3,4,4,5,5,6,6};
+        if(forward_calls!=expected[step])failed=1;
+        if((step==3||step==4||step==7||step==9||step==11||step==13)&&last_vx!=0)failed=1;
+        if(++step==14)longjmp(escape,1);
+        if(step==1){g_chassis_ready=1;tick=0xffffff00U;target(3,1);}
+        if(step==2){tick+=999;target(3,1);}
+        if(step==3){tick+=1;target(3,1);}
+        if(step==4){tick+=100;target(3,1);}
+        if(step==5)target(0,0);
+        if(step==6)target(3,1);
+        if(step==7)tick+=501;
+        if(step==8)target(3,1);
+        if(step==9)linked=1;
+        if(step==10){linked=0;target(3,1);}
+        if(step==11)target(4,1);
+        if(step==12)target(3,1);
+        if(step==13)linked=1;
     }else{
-        static const int expected[]={1,1,1,1,1,2,3,3,3,4,4,5};
+        static const int expected[]={1,1,2,2,2,3,4,4,4,5,5,6};
         if(grip_calls!=expected[step])failed=1;
         if(step==6&&angle!=-40)failed=1; /* original CH4 center -> half open */
         if(++step==12)longjmp(escape,1);
@@ -77,3 +97,5 @@ uint16_t test_crc(const uint8_t*p,uint8_t n){return crc16(p,n);}
 void test_tx_fail(void){tx_fail=1;}
 int test_modes(void){step=failed=zeros=0;script=1;linked=1;g_control_mode=CONTROL_MODE_AUTO;if(!setjmp(escape))StartTask04(0);return failed;}
 int test_grip(void){step=failed=grip_calls=0;script=2;linked=0;g_control_mode=CONTROL_MODE_AUTO;target(1,1);if(!setjmp(escape))StartTask06(0);return failed;}
+
+int test_blue(void){step=failed=forward_calls=zeros=0;last_vx=0;script=3;linked=0;g_chassis_ready=0;g_control_mode=CONTROL_MODE_AUTO;target(3,1);if(!setjmp(escape))StartTask04(0);g_chassis_ready=1;return failed;}

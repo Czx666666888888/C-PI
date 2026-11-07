@@ -150,6 +150,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+static volatile uint8_t g_chassis_ready = 0U; /* 完成原底盘初始化后才允许蓝色前进。 */
 volatile control_mode_t g_control_mode = CONTROL_MODE_AUTO;
 volatile uint8_t g_auto_red_grab_done = 0U;
 volatile uint8_t g_tower_mode_active = 0U; /* 塔吊模式激活: 1=底盘任务停发CAN, 交 TOWER_Task 独占总线 */
@@ -422,6 +423,7 @@ void StartTask02(void const * argument)
   /* 用 DWT 周期计数器实测控制周期(实际≈2.3ms, 而非假设的2ms),
      否则陀螺航向积分会系统性偏低, 航向保持/自转中心保持都会失准 */
   uint32_t last_cyc = DWT->CYCCNT;
+  g_chassis_ready = 1U;
 
   for (;;)
   {
@@ -532,6 +534,9 @@ void StartTask04(void const * argument)
    * 掉线切换自动时归零一次，此后不抢占未来自动程序的底盘目标。 */
   uint16_t ch_thr, ch_fwd, ch_str, ch_rot, ch_mode;
   float thr, nvx, nvy, nwz;
+  pi_target_t auto_target;
+  uint8_t blue_armed = 1U, blue_running = 0U;
+  uint32_t blue_start_tick = 0U;
   static uint8_t motor6_initialized = 0U;  /* 电机6首次使能标志(仅塔吊模式可控, 与底盘驱动分开) */
   for(;;)
   {
@@ -545,10 +550,41 @@ void StartTask04(void const * argument)
       /* 电机6仍保留原有掉线停机重发，只有底盘目标改为切换时归零。 */
       if (motor6_initialized) { X_V2_Stop_Now(MOTOR6_ADDR, false); }
       g_control_mode = CONTROL_MODE_AUTO;
+      pi_link_get_target(&auto_target);
+      if (!auto_target.valid || auto_target.color != 3U)
+      {
+        if (blue_running) chassis_set_target(0.0f, 0.0f, 0.0f);
+        blue_running = 0U;
+        blue_armed = 1U;
+      }
+      else if (g_chassis_ready)
+      {
+        if (blue_armed)
+        {
+          blue_start_tick = HAL_GetTick();
+          blue_running = 1U;
+          blue_armed = 0U;
+        }
+        if (blue_running)
+        {
+          if ((uint32_t)(HAL_GetTick() - blue_start_tick) >= 1000U)
+          {
+            chassis_set_target(0.0f, 0.0f, 0.0f);
+            blue_running = 0U;
+          }
+          else
+          {
+            /* 非阻塞计时；目标失效/变色提前停，同色持续发送不会续时。 */
+            chassis_set_target(CHASSIS_FORWARD_SPEED, 0.0f, 0.0f);
+          }
+        }
+      }
       osDelay(10);
       continue;
     }
 
+    blue_running = 0U;
+    blue_armed = 1U; /* 取消自动计时，后续底盘目标完全由原手动分支接管。 */
     g_control_mode = CONTROL_MODE_MANUAL; /* 有效遥控始终优先，CH7仍只切塔吊。 */
 
     /* 塔吊模式(CH7 开关拨动): 底盘完全停止, 交回 TOWER_Task 控制塔吊 */
@@ -662,13 +698,14 @@ void StartTask06(void const * argument)
   int32_t yaw_prev = 0;           /* 上一拍转子角度, 计算增量用 */
   uint8_t rot_mode_active = 0U;   /* 上一拍是否处于摇杆速度模式(用于切换时复位速度环) */
   pi_target_t target;
+  uint8_t auto_grip_color = 0U;
   int16_t grip_last_angle = 0;    /* 夹爪舵机上次写入角度(拨杆换档才更新, 减少写比较寄存器) */
 
   for (;;)
   {
     if (g_control_mode == CONTROL_MODE_AUTO || !crsf_is_linked(REMOTE_LINK_TIMEOUT_MS))
     {
-      /* 自动模式仅允许夹爪动作，升降和6020保持停止。 */
+      /* 自动夹爪由本任务统一控制；蓝色底盘动作在UART_RX_Task，升降/6020停止。 */
       if (lift_initialized) { X_V2_Stop_Now(TOWER_LIFT_MOTOR_ADDR, false); }
       set_GM6020_motor_voltage(&hcan1, 0);
       g_6020_voltage_cmd = 0;
@@ -676,23 +713,29 @@ void StartTask06(void const * argument)
       tower_active = 0U;
       taskENTER_CRITICAL();
       pi_link_get_target(&target);
-      if (!target.valid || target.color != 1U)
+      if (!target.valid || (target.color != 1U && target.color != 4U))
       {
+        auto_grip_color = 0U;
         g_auto_red_grab_done = 0U;
       }
-      /* 再查链路，避免有效CRSF刚恢复但模式任务尚未更新时自动闭合。 */
+      /* 红色闭合、绿色张开；同色目标只触发一次，手动链路恢复即停止自动操作。 */
       if (g_control_mode == CONTROL_MODE_AUTO && !crsf_is_linked(REMOTE_LINK_TIMEOUT_MS) &&
-          target.valid && target.color == 1U && !g_auto_red_grab_done)
+          target.valid && (target.color == 1U || target.color == 4U))
       {
-        SG90_SetAngle(TOWER_GRIP_ANGLE_LOW);
-        grip_last_angle = TOWER_GRIP_ANGLE_LOW; /* 手动接管按真实最后角度更新拨杆。 */
-        g_auto_red_grab_done = 1U;
+        if (auto_grip_color != target.color)
+        {
+          grip_last_angle = (target.color == 1U) ? TOWER_GRIP_ANGLE_LOW : TOWER_GRIP_ANGLE_HIGH;
+          SG90_SetAngle(grip_last_angle);
+          auto_grip_color = target.color;
+        }
+        g_auto_red_grab_done = (target.color == 1U) ? 1U : 0U;
       }
       taskEXIT_CRITICAL();
       osDelay(10);
       continue;
     }
     g_auto_red_grab_done = 0U;
+    auto_grip_color = 0U;
 
     ch_mode = crsf_get_channel(REMOTE_CH_MODE);
 
