@@ -45,3 +45,5 @@ PI/config/usb.json提供暂用/dev/ttyACM0的配置模板；未枚举前不要�
 这些测试不模拟真实USB电气/主机枚举/PCD中断。实际Linux ttyACM识别、双向ACK/STATUS、插拔、相机联动和机构动作全部UNVERIFIED。尚未烧录，烧录仍须用户确认。
 
 当前HEX SHA256：c0bd35ccb75cae87b6b80a672a8dc357a8d3d982477834b9ca89f0bf0c06df55。
+
+独立干净checkout 82fbdb9也已真实Keil重建PASS（0 Errors/14 Warnings），HEX与当前工作目录构建逐字节一致，验证不依赖原本地未提交Keil配置。
