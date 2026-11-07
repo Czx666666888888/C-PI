@@ -22,9 +22,12 @@
 
 /* USER CODE BEGIN 0 */
 #include "crsf.h"
+#include "pi_link.h"
 
 /* USART1 接收字节缓冲: 由中断逐字节接收, 喂给 CRSF 解析器 */
 static uint8_t s_crsf_rx_byte = 0U;
+static uint8_t s_pi_rx_byte;
+static volatile uint8_t s_pi_rx_recover;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -221,6 +224,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart3_rx);
 
   /* USER CODE BEGIN USART3_MspInit 1 */
+    HAL_NVIC_SetPriority(USART3_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(USART3_IRQn);
 
   /* USER CODE END USART3_MspInit 1 */
   }
@@ -297,6 +302,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     /* USART3 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
   /* USER CODE BEGIN USART3_MspDeInit 1 */
+    HAL_NVIC_DisableIRQ(USART3_IRQn);
 
   /* USER CODE END USART3_MspDeInit 1 */
   }
@@ -331,6 +337,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         crsf_parse_byte(s_crsf_rx_byte);
         HAL_UART_Receive_IT(&huart1, &s_crsf_rx_byte, 1U);
     }
+    else if (huart->Instance == USART3)
+    {
+        uint8_t byte = s_pi_rx_byte;
+        /* 先重装单字节DMA，再入缓冲；中断中不发送反馈、不调用舵机。 */
+        if (HAL_UART_Receive_DMA(&huart3, &s_pi_rx_byte, 1U) != HAL_OK)
+        {
+            s_pi_rx_recover = 1U;
+            pi_link_rx_error_isr();
+        }
+        pi_link_rx_byte_isr(byte);
+    }
 }
 
 /* USART1 接收错误回调: 清除错误标志并恢复接收, 防止过载/帧错误导致接收停滞 */
@@ -343,6 +360,29 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
         __HAL_UART_CLEAR_FEFLAG(huart);
         __HAL_UART_CLEAR_PEFLAG(huart);
         HAL_UART_Receive_IT(&huart1, &s_crsf_rx_byte, 1U);
+    }
+    else if (huart->Instance == USART3)
+    {
+        /* HAL已处理DMA错误/中止；恢复留给MAIN_Task，避免ISR阻塞。 */
+        s_pi_rx_recover = 1U;
+        pi_link_rx_error_isr();
+    }
+}
+void PI_UART_ServiceReceive(void)
+{
+    if (s_pi_rx_recover)
+    {
+        if (HAL_UART_AbortReceive(&huart3) != HAL_OK) return;
+        __HAL_UART_CLEAR_OREFLAG(&huart3); /* F4读取SR/DR，清除接收错误。 */
+        s_pi_rx_recover = 0U;
+    }
+    if (huart3.RxState == HAL_UART_STATE_READY)
+    {
+        if (HAL_UART_Receive_DMA(&huart3, &s_pi_rx_byte, 1U) != HAL_OK)
+        {
+            s_pi_rx_recover = 1U;
+            pi_link_rx_error_isr();
+        }
     }
 }
 /* USER CODE END 1 */

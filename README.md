@@ -31,8 +31,10 @@ python -m unittest discover -s PI/tests -v
 
 2026-11-07 实际 Keil rebuild **PASS，0 Errors / 14 Warnings**。ST-Link 烧录 **UNVERIFIED**，本次未烧录。Pi 免密 SSH 与 Windows 实时预览已验证；同步部署脚本端到端实机仍 **UNVERIFIED**，USB 摄像头存在间歇断连，详见本次预览验收。
 详见 [迁移验收](docs/windows_migration.md)、[固件说明](firmware/README.md)、[Pi 说明](PI/README.md)、[V1 协议](docs/uart_v1.md)。
-已有 Pi 实现视觉偏差、UART 115200 8N1、HEARTBEAT/TARGET、接收 TARGET_ACK/STATUS、CRC16、重连、valid=0 和 systemd unit。Windows 6 个协议/合成视觉测试通过；C 板尚未实现协议。
+已有 Pi 实现视觉偏差、UART 115200 8N1、HEARTBEAT/TARGET、接收 TARGET_ACK/STATUS、CRC16、重连、valid=0 和 systemd unit。Windows 6 个协议/合成视觉测试通过；C 板V1协议与手/自动红色夹爪触发已实现并编译，实板收发与动作待烧录后验证。
 旧二维码、相机预览和串口程序保留在 legacy，遗留脚本有旧环境和未定义依赖，不代表全部可运行。历史实机证据见 docs/pi_uart_v1_validation.md，当前硬件须重验。
 本次 feature/windows-workspace 基于 feature/pi-uart-v1 的 e122438，含 main 和视觉分支历史；每次任务测试后 Commit/Push 并核对 SHA，不 force push，不自动合并 main。约束见 AGENTS.md。
 
 Windows 免密 SSH 与摄像头预览入口见 [使用说明](docs/windows_preview.md) 和 [本次实测](docs/windows_preview_validation.md)。
+
+STM32 手/自动模式、V1 收发与红色夹爪触发见 [开发验收](docs/stm32_uart_v1_validation.md)。

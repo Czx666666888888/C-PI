@@ -38,6 +38,8 @@
 #include "BMI088driver.h"
 #include "crsf.h"
 #include "SG90.h"
+#include "pi_link.h"
+#include "usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -148,6 +150,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+volatile control_mode_t g_control_mode = CONTROL_MODE_AUTO;
+volatile uint8_t g_auto_red_grab_done = 0U;
 volatile uint8_t g_tower_mode_active = 0U; /* 塔吊模式激活: 1=底盘任务停发CAN, 交 TOWER_Task 独占总线 */
 extern pid_struct_t gimbal_yaw_speed_pid;  /* 6020 速度环 PID (塔吊旋转用) */
 volatile int16_t g_6020_voltage_cmd = 0;   /* 最近一拍下发给 6020 的电压指令(诊断: OLED 塔吊模式第3行) */
@@ -237,7 +241,7 @@ void MX_FREERTOS_Init(void) {
   UART_RX_TaskHandle = osThreadCreate(osThread(UART_RX_Task), NULL);
 
   /* definition and creation of MAIN_Task */
-  osThreadDef(MAIN_Task, StartTask05, osPriorityBelowNormal, 0, 256);
+  osThreadDef(MAIN_Task, StartTask05, osPriorityNormal, 0, 256);
   MAIN_TaskHandle = osThreadCreate(osThread(MAIN_Task), NULL);
 
   /* definition and creation of TOWER_Task */
@@ -525,7 +529,7 @@ void StartTask04(void const * argument)
   /* --- 遥控接收(CRSF)任务: 解析 ELRS 接收机数据 → 底盘速度指令 ---
    * 数据流: 遥控器 → ELRS 接收机(CRSF) → USART1(PA9=TX, PB7=RX) → crsf.c 解析
    * 本任务周期读取通道值并映射为 chassis_set_target(vx, vy, wz)。
-   * 掉线时输出零速度(失控保护), 实际停转由 Chassis_Task 的速度环完成。 */
+   * 掉线切换自动时归零一次，此后不抢占未来自动程序的底盘目标。 */
   uint16_t ch_thr, ch_fwd, ch_str, ch_rot, ch_mode;
   float thr, nvx, nvy, nwz;
   static uint8_t motor6_initialized = 0U;  /* 电机6首次使能标志(仅塔吊模式可控, 与底盘驱动分开) */
@@ -533,12 +537,19 @@ void StartTask04(void const * argument)
   {
     if (!crsf_is_linked(REMOTE_LINK_TIMEOUT_MS))
     {
-      /* 掉线保护: 停车 + 电机6停止 */
+      /* 手动→自动仅停车一次，自动分支不持续覆盖底盘目标。 */
+      if (g_control_mode == CONTROL_MODE_MANUAL)
+      {
+        chassis_set_target(0.0f, 0.0f, 0.0f);
+      }
+      /* 电机6仍保留原有掉线停机重发，只有底盘目标改为切换时归零。 */
       if (motor6_initialized) { X_V2_Stop_Now(MOTOR6_ADDR, false); }
-      chassis_set_target(0.0f, 0.0f, 0.0f);   /* 掉线保护: 停车 */
+      g_control_mode = CONTROL_MODE_AUTO;
       osDelay(10);
       continue;
     }
+
+    g_control_mode = CONTROL_MODE_MANUAL; /* 有效遥控始终优先，CH7仍只切塔吊。 */
 
     /* 塔吊模式(CH7 开关拨动): 底盘完全停止, 交回 TOWER_Task 控制塔吊 */
     ch_mode = crsf_get_channel(REMOTE_CH_MODE);
@@ -612,10 +623,12 @@ void StartTask04(void const * argument)
 void StartTask05(void const * argument)
 {
   /* USER CODE BEGIN StartTask05 */
-  /* Infinite loop */
-  for(;;)
+  /* 复用空闲任务：DMA字节缓冲在这里解析，ACK/STATUS只在任务中发送。 */
+  for (;;)
   {
-    osDelay(1000);
+    PI_UART_ServiceReceive();
+    pi_link_process();
+    osDelay(10);
   }
   /* USER CODE END StartTask05 */
 }
@@ -648,20 +661,38 @@ void StartTask06(void const * argument)
   float   hold_unwrapped = 0.0f;  /* 锁位目标(解缠绕角度) */
   int32_t yaw_prev = 0;           /* 上一拍转子角度, 计算增量用 */
   uint8_t rot_mode_active = 0U;   /* 上一拍是否处于摇杆速度模式(用于切换时复位速度环) */
+  pi_target_t target;
   int16_t grip_last_angle = 0;    /* 夹爪舵机上次写入角度(拨杆换档才更新, 减少写比较寄存器) */
 
   for (;;)
   {
-    if (!crsf_is_linked(REMOTE_LINK_TIMEOUT_MS))
+    if (g_control_mode == CONTROL_MODE_AUTO || !crsf_is_linked(REMOTE_LINK_TIMEOUT_MS))
     {
-      /* 掉线保护: 停升降, 6020 电压归零 */
-      if (lift_initialized)  { X_V2_Stop_Now(TOWER_LIFT_MOTOR_ADDR, false); }
+      /* 自动模式仅允许夹爪动作，升降和6020保持停止。 */
+      if (lift_initialized) { X_V2_Stop_Now(TOWER_LIFT_MOTOR_ADDR, false); }
       set_GM6020_motor_voltage(&hcan1, 0);
+      g_6020_voltage_cmd = 0;
       g_tower_mode_active = 0U;
       tower_active = 0U;
+      taskENTER_CRITICAL();
+      pi_link_get_target(&target);
+      if (!target.valid || target.color != 1U)
+      {
+        g_auto_red_grab_done = 0U;
+      }
+      /* 再查链路，避免有效CRSF刚恢复但模式任务尚未更新时自动闭合。 */
+      if (g_control_mode == CONTROL_MODE_AUTO && !crsf_is_linked(REMOTE_LINK_TIMEOUT_MS) &&
+          target.valid && target.color == 1U && !g_auto_red_grab_done)
+      {
+        SG90_SetAngle(TOWER_GRIP_ANGLE_LOW);
+        grip_last_angle = TOWER_GRIP_ANGLE_LOW; /* 手动接管按真实最后角度更新拨杆。 */
+        g_auto_red_grab_done = 1U;
+      }
+      taskEXIT_CRITICAL();
       osDelay(10);
       continue;
     }
+    g_auto_red_grab_done = 0U;
 
     ch_mode = crsf_get_channel(REMOTE_CH_MODE);
 
