@@ -19,8 +19,8 @@
 
 | 项目 / 命令 | 结果 | 证据与边界 |
 |---|---|---|
-| PC `python3 -m compileall -q raspberry_pi/main.py raspberry_pi/communication raspberry_pi/vision raspberry_pi/scripts raspberry_pi/tests` | PASS | 新代码语法 |
-| PC `python3 -m unittest discover -s raspberry_pi/tests -p test_protocol.py -v` | PASS | 4 tests；CRC 0x29B1、分片/粘包、坏帧恢复、int16 极值、超时失效 |
+| PC `python3 -m compileall -q PI/main.py PI/communication PI/vision PI/scripts PI/tests` | PASS | 新代码语法 |
+| PC `python3 -m unittest discover -s PI/tests -p test_protocol.py -v` | PASS | 4 tests；CRC 0x29B1、分片/粘包、坏帧恢复、int16 极值、超时失效 |
 | Pi venv `python -m unittest discover -s tests -v` | PASS | 6 tests，包括原算法合成 RGB 图 (30,-15)、输入图不改、空图、固定选择、采集故障清空与重新打开 |
 | Pi venv `python scripts/mock_uart_test.py` | PASS | PTY 实际进程收发；最终 TARGET 9.796 Hz、HEARTBEAT 1.999 Hz；正负坐标、ACK/STATUS、断开存活、重新连接 |
 | Pi venv `python main.py --mode vision --duration 20` | PASS | 真实相机日志至少 312 帧，无目标持续 `{}`，正常释放 |
@@ -45,4 +45,4 @@ PC 直接运行 mock 曾因无 pyserial 未通过；随后使用 Pi 原 venv 测
 3. C 板固件实现匹配的 [V1](uart_v1.md) 后，断电核对 USART3 实物接口，再交叉连接 TX/RX 与共地。
 4. 验证实物 CRC/序号/ACK/STATUS；未来运动开发必须另做控制权仲裁及固件超时停车测试。
 
-运行、日志、停用命令与未来联调启动命令见 [Pi README](../raspberry_pi/README.md#v1-联合服务)。
+运行、日志、停用命令与未来联调启动命令见 [Pi README](../PI/README.md#v1-联合服务)。

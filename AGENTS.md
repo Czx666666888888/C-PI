@@ -17,5 +17,14 @@ DJI C 板 STM32F407 是实时运动控制下位机；树莓派是负责视觉识
 ## 协作
 用户确定目标；ChatGPT 分析设计及验收；Codex 在功能分支实施并 Push；ChatGPT 复核代码和结果。
 
-## 首个开发任务
-树莓派 ↔ C 板实现 HELLO、HEARTBEAT、SET_VELOCITY、STATUS 和通信超时停车。
+## Windows 长期工作流
+- Windows 开发和 Git；Pi 运行视觉、UART、systemd。代码统一 PI/，远端 /home/pi/cpi-vision，保留 /home/pi/opencv_test。
+- 每次任务结束检查 diff、运行相关测试、仅 add 任务文件、commit、push 对应功能分支，并 ls-remote 核对 SHA。用户已长期授权 Push，无需再次确认；失败必须报告。禁止 force push，不直接合并未经测试的 main。
+- main 为稳定基线；feature/pi-source-migration 为历史视觉迁移；feature/pi-uart-v1 为 Pi V1；feature/stm32-uart-v1 为后续固件通信；本次 feature/windows-workspace 基于最新 Pi 成果。
+- 不覆盖未提交修改；禁止 reset --hard、git clean -fd。目录整理须核查工程相对路径。DJI C board(1)/ 是保留原件，不作开发入口。
+- Keil 入口 firmware/MDK-ARM/DJI C board.uvprojx；使用 tools/build_firmware.ps1。不擅自更换 HAL、FreeRTOS、Pack、编译器或迁移 GCC；禁止伪造编译成功。
+- 不提交 .o/.axf/.hex、日志、缓存或密钥。本地输出保留；烧录会驱动电机的固件须另获用户确认。
+- tools/deploy_pi.ps1 和 pull_pi.ps1 默认预检查，-Apply 才写入；哈希冲突人工合并，不覆盖独立修改，不自动重启服务。
+- V1 以 docs/uart_v1.md 和 PI/communication/protocol.py 为准，本阶段不实现旧草案 HELLO/SET_VELOCITY。
+- 夹爪参考点 (290,260)，dx=cx-290、dy=260-cy；get_color_blocks_positions 已返回偏差，禁止再次计算。不擅改视觉算法，不令固件根据视觉运动。
+- USART1 保留 CRSF；USART3 回调不能破坏 USART1；StartTask04 已写底盘目标，后续须统一仲裁和失联停车。

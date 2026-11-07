@@ -1,0 +1,21 @@
+.migration-remote/
+DJI C board(1)/
+.local/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.log
+.env
+*.pem
+*.key
+firmware/MDK-ARM/DJI C board/
+*.o
+*.axf
+*.hex
+*.bin
+*.map
+*.lst
+*.crf
+*.d
+*.uvguix.*

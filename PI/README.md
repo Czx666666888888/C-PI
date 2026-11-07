@@ -1,3 +1,5 @@
+> Windows 迁移（2026-11-07）：代码目录由 raspberry_pi 改为 PI，以下早期“未实现”描述为历史状态，当前以“V1 联合服务”和 docs/pi_uart_v1_validation.md 为准。Windows 使用 ../tools/deploy_pi.ps1 与 pull_pi.ps1；原 deploy.sh 仅作历史保留。当前 SSH/硬件状态见 ../docs/windows_migration.md。
+
 # 树莓派源码迁移
 
 `legacy/` 是从树莓派 `/home/pi/opencv_test/*.py` 原样复制的 10 个源文件。
@@ -47,7 +49,7 @@
 PC 运行（需要 OpenCV、NumPy 和已经配置的 SSH 密钥）：
 
 ```bash
-python3 raspberry_pi/preview_material.py
+python3 PI/preview_material.py
 ```
 
 窗口聚焦后按 Q 或 Esc 停止。GTK 后端不一定提供窗口可见性属性，优先使用键盘退出。
@@ -56,8 +58,8 @@ python3 raspberry_pi/preview_material.py
 
 已运行的验证：
 
-- `python3 -m py_compile raspberry_pi/preview_material.py`：PASS。
-- `python3 raspberry_pi/preview_material.py --headless --frames 90 --snapshot /tmp/cpi_material_preflight.jpg`：90 帧采集、传输、解码完成，预览略过 0；Pi 约 17 FPS，读取失败 0；快照已查看。
+- `python3 -m py_compile PI/preview_material.py`：PASS。
+- `python3 PI/preview_material.py --headless --frames 90 --snapshot /tmp/cpi_material_preflight.jpg`：90 帧采集、传输、解码完成，预览略过 0；Pi 约 17 FPS，读取失败 0；快照已查看。
 - 预检退出后 `fuser /dev/video0` 无占用，随后成功启动持续 GUI 预览。
 - PC `xwininfo -root -tree` 确认 960×720 检测窗口已创建；持续日志显示 Pi 约 18 FPS，读取失败 0，并返回 Green 像素位置。
 
@@ -96,7 +98,7 @@ python3 raspberry_pi/preview_material.py
 PC 同步（不复制 venv/缓存，不使用 rsync --delete）：
 
 ```bash
-bash raspberry_pi/scripts/deploy.sh
+bash PI/scripts/deploy.sh
 ```
 
 树莓派手动测试：
