@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial" font-size="24" data-pptx-page-role="content">
+<rect id="background" data-pptx-role="background" width="1280" height="720" fill="#FFFFFF"/>
+<g id="header" data-pptx-bounds="56 28 1168 105" fill="#12304A"><text x="56" y="51" font-size="18" fill="#008C95">03 / 搬运机构与功能原理</text><text x="56" y="109" font-size="40" font-weight="bold">升降、伸缩与开合完成抓放动作</text></g>
+<g id="mechanism-view" data-pptx-bounds="56 158 470 425"><image href="../images/mechanism_7.jpg" x="56" y="158" width="470" height="425" preserveAspectRatio="xMidYMid meet"/></g>
+<g id="motion-explanation" data-pptx-bounds="565 165 380 420" fill="#203447"><text x="565" y="205" font-size="30" fill="#12304A" font-weight="bold">动作分解，逐项调试</text><text x="565" y="275" fill="#008C95">01  丝杆升降</text><text x="565" y="312" font-size="18">导轨约束姿态，丝杆传递竖直运动</text><text x="565" y="375" fill="#008C95">02  齿轮齿条伸缩</text><text x="565" y="412" font-size="18">改变水平抓取距离，适应工位作业</text><text x="565" y="475" fill="#008C95">03  舵机驱动夹爪</text><text x="565" y="512" font-size="18">夹持物料，再收回并转移至储料盘</text><text x="565" y="567" font-size="18">运动限位、行程与干涉在联调中复核</text></g>
+<g id="detail-photo" data-pptx-bounds="982 160 242 440"><image href="../images/prototype_3.jpg" x="982" y="160" width="242" height="395" preserveAspectRatio="xMidYMid meet"/><text x="1103" y="587" fill="#596D7E" font-size="18" text-anchor="middle">实物：丝杆与伸缩连接</text></g>
+<g id="takeaway" data-pptx-bounds="56 616 1168 43"><text x="56" y="647" fill="#008C95">抓取过程：高度对齐 → 水平接近 → 夹持 → 收回 → 车载储存</text></g>
+<g id="footer" data-pptx-bounds="56 675 1168 28" fill="#596D7E" font-size="14"><text x="56" y="695">当前结构依据提供的CAD与实车图；未沿用旧PPT中未经核对的电机型号</text><text x="1220" y="695" text-anchor="end">04</text></g>
+</svg>

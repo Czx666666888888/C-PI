@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial" font-size="24" data-pptx-page-role="ending">
+<rect id="background" data-pptx-role="background" width="1280" height="720" fill="#FFFFFF"/>
+<rect id="ending-field" data-pptx-role="decoration" x="835" y="0" width="445" height="720" fill="#12304A"/>
+<g id="demo-header" data-pptx-bounds="56 38 720 100" fill="#12304A"><text x="56" y="65" font-size="18" fill="#008C95">09 / 实车进展演示</text><text x="56" y="123" font-size="40" font-weight="bold">小车进展演示</text></g>
+<g id="gif-stage" data-pptx-bounds="56 166 720 400"><rect x="56" y="166" width="720" height="400" fill="#F1F5F9"/><image href="../images/prototype_1.jpg" x="56" y="166" width="720" height="400" preserveAspectRatio="xMidYMid meet"/></g>
+<g id="gif-instructions" data-pptx-bounds="56 594 720 72"><text x="56" y="622" fill="#008C95">GIF预留区：替换上方静态图片即可</text><text x="56" y="655" fill="#596D7E" font-size="18">建议展示：底盘移动 / 升降抓放 / 视觉识别</text></g>
+<g id="closing-message" data-pptx-bounds="880 90 350 555" fill="#FFFFFF"><text x="880" y="152" font-size="18" fill="#69D0CF">已有实车基础 · 持续迭代</text><text x="880" y="265" font-size="40" font-weight="bold">从单模块稳定<tspan x="880" dy="62">走向整场自主</tspan></text><line x1="880" y1="380" x2="960" y2="380" stroke="#008C95" stroke-width="4"/><text x="880" y="457" font-size="30">感谢各位老师<tspan x="880" dy="50">批评指正</tspan></text><text x="880" y="610" font-size="18" fill="#C3D8E4">智能物流运输机器人 / C-PI</text></g>
+<g id="footer" data-pptx-bounds="56 675 720 28" fill="#596D7E" font-size="14"><text x="56" y="695">当前为团队实车静态图；本次未提供GIF文件</text><text x="770" y="695" text-anchor="end">10</text></g>
+</svg>

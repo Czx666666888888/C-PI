@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial" font-size="24" data-pptx-page-role="content">
+<rect id="background" data-pptx-role="background" width="1280" height="720" fill="#12304A"/>
+<g id="header" data-pptx-bounds="56 28 1168 105" fill="#FFFFFF"><text x="56" y="51" font-size="18" fill="#69D0CF">08 / 已有成果与预期效果</text><text x="56" y="109" font-size="40" font-weight="bold">实车已有基础，整场效果以实测验收</text></g>
+<g id="prototype-photo" data-pptx-bounds="56 163 320 345"><image href="../images/prototype_1.jpg" x="56" y="163" width="320" height="290" preserveAspectRatio="xMidYMid slice"/><text x="56" y="494" fill="#FFFFFF">整车结构已搭建</text></g>
+<g id="debug-photo" data-pptx-bounds="408 163 490 345"><image href="../images/prototype_2.jpg" x="408" y="163" width="490" height="290" preserveAspectRatio="xMidYMid slice"/><text x="408" y="494" fill="#FFFFFF">电控已完成调试</text></g>
+<g id="mechanical-detail" data-pptx-bounds="930 163 294 345"><image href="../images/prototype_3.jpg" x="930" y="163" width="294" height="290" preserveAspectRatio="xMidYMid slice"/><text x="930" y="494" fill="#FFFFFF">定位与视觉优化中</text></g>
+<g id="expected-outcome" data-pptx-bounds="56 543 1168 120"><text x="56" y="576" fill="#69D0CF" font-size="30" font-weight="bold">预期：两批物料自主搬运、按序放置码垛并返回起点</text><text x="56" y="621" fill="#FFFFFF">验收记录：停靠误差 · 抓放成功率 · 整场耗时 · 异常失联停车</text><text x="56" y="653" fill="#C3D8E4" font-size="18">以重复试验和完整视频作为证据，当前量化指标待实测。</text></g>
+<g id="footer" data-pptx-bounds="56 675 1168 28" fill="#C3D8E4" font-size="14"><text x="56" y="695">实车与电控完成状态依据团队确认；本页预期不代表整场验收已完成，性能指标 UNVERIFIED</text><text x="1220" y="695" text-anchor="end">09</text></g>
+</svg>

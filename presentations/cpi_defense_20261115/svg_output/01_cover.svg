@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial" font-size="24" data-pptx-page-role="cover">
+<rect id="background" data-pptx-role="background" width="1280" height="720" fill="#FFFFFF"/>
+<rect id="cover-field" data-pptx-role="decoration" width="535" height="720" fill="#12304A"/>
+<g id="cover-copy" data-pptx-bounds="56 65 450 550" fill="#FFFFFF"><text x="56" y="100" font-size="18" fill="#69D0CF">2027 工创赛 · 智能物流运输赛道</text><text x="56" y="220" font-size="56" font-weight="bold">智能物流<tspan x="56" dy="80">运输机器人</tspan></text><line x1="56" y1="348" x2="140" y2="348" stroke="#008C95" stroke-width="5"/><text x="56" y="405" font-size="30">从机构落地<tspan x="56" dy="45">迈向全场自主搬运</tspan></text><text x="56" y="535" font-size="18">机械设计 / 实时电控 / OPS / 视觉</text><text x="56" y="580" font-size="18">项目设计与阶段成果答辩</text></g>
+<g id="assembly-hero" data-pptx-bounds="555 45 685 590"><image href="../images/mechanism_6.jpg" x="570" y="55" width="650" height="565" preserveAspectRatio="xMidYMid meet"/></g>
+<g id="status-line" data-pptx-bounds="575 635 630 50" fill="#12304A"><text x="575" y="665">实车已搭建 · 电控已调试 · 定位视觉优化中</text></g>
+</svg>

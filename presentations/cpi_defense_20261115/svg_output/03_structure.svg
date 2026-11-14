@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Microsoft YaHei, Arial" font-size="24" data-pptx-page-role="content">
+<rect id="background" data-pptx-role="background" width="1280" height="720" fill="#FFFFFF"/>
+<g id="header" data-pptx-bounds="56 28 1168 105" fill="#12304A"><text x="56" y="51" font-size="18" fill="#008C95">02 / 整体结构与底盘</text><text x="56" y="109" font-size="40" font-weight="bold">整车布局兼顾移动、抓取与存储</text></g>
+<g id="main-assembly" data-pptx-bounds="56 153 520 450"><image href="../images/mechanism_6.jpg" x="56" y="153" width="520" height="450" preserveAspectRatio="xMidYMid meet"/></g>
+<g id="chassis-views" data-pptx-bounds="625 152 599 255"><image href="../images/mechanism_1.jpg" x="625" y="152" width="360" height="220" preserveAspectRatio="xMidYMid meet"/><image href="../images/mechanism_2.jpg" x="1000" y="152" width="224" height="220" preserveAspectRatio="xMidYMid meet"/><text x="625" y="401" font-size="18" fill="#596D7E">承载与布置　　　　　　　　底视：驱动与测量分离</text></g>
+<g id="structure-explanation" data-pptx-bounds="625 428 599 179" fill="#203447"><text x="625" y="462" font-size="30" fill="#12304A" font-weight="bold">全向机动 + 集成作业平台</text><text x="625" y="512">四麦克纳姆轮：前后、横移、原地转向<tspan x="625" dy="42">立柱与伸缩夹爪：覆盖抓放作业空间</tspan><tspan x="625" dy="42">三工位储料盘：运输时物料存放车上</tspan></text></g>
+<g id="takeaway" data-pptx-bounds="56 619 1168 40"><text x="56" y="648" fill="#008C95">紧凑布局减少姿态调整；底部独立测量组件服务后续OPS位姿估计。</text></g>
+<g id="footer" data-pptx-bounds="56 675 1168 28" fill="#596D7E" font-size="14"><text x="56" y="695">设计图来自团队资料；底盘驱动参数沿用已调试方案，定位标定仍在推进</text><text x="1220" y="695" text-anchor="end">03</text></g>
+</svg>
